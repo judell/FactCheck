@@ -1,0 +1,146 @@
+<html>
+<head>
+<style>
+body { font-family:arial; margin:.5in; }
+#formContainer { display:flex; justify-content: space-evenly }
+.formLabel { font-weight: bold; }
+.formMessage { font-size:smaller }
+</style>
+
+<script src="https://jonudell.info/hlib/hlib.js"></script>
+
+</head>
+
+<body>
+
+<div id="formContainer">
+  <div id="userContainer"></div>
+  <div id="groupContainer"></div>
+  <div id="tokenContainer"></div>
+</div>
+
+<div id="viewer"></div>
+
+<div id="postButton"></div>
+
+<p id="status"></p>
+
+<hr>
+
+<p>raw claimReview data found in page:</p>
+<pre id="claimReviewJson"></pre>
+
+<script>
+
+var json;
+
+function postAnno() {
+	var payload = createAnnotationPayload(
+		json.targetUri[0],
+		getUser(),
+		getGroup(),
+		getById('viewer').innerHTML,
+		[],
+		);
+	var token = getToken();
+  postAnnotation(payload, token, 'status');
+}
+
+function app() {
+
+	function classifyAs(factchecker, url) {
+	  if ( url.toLowerCase().indexOf(factchecker) != -1 ) {
+	  	return factchecker;
+	  }
+	  else {
+	  	return null;
+	  }
+	}
+
+	var payload = decodeURIComponent(gup('url'));
+
+	try {
+	  json = JSON.parse(payload);
+	  payload = JSON.stringify(json, null, 2);
+	}
+	catch (e) { }
+
+  if (! json.claimReviewed) {
+  	viewer.innerHTML = `<p>No ClaimReview data found at ${json.urlOfFactCheck}`;
+  	getById('postButton').style.display = 'none';
+  	return;
+  }
+
+
+  getById('claimReviewJson').innerHTML = payload;
+
+	var tokenContainer = getById('tokenContainer');
+	createApiTokenInputForm(tokenContainer);
+
+	var groupContainer = getById('groupContainer');
+	createGroupInputForm(groupContainer);
+
+	var userContainer = getById('userContainer');
+	createUserInputForm(userContainer);
+
+	var factChecker;
+
+	var snopes = classifyAs('snopes', json.urlOfFactCheck);
+	var politifact = classifyAs('politifact', json.urlOfFactCheck);
+	var factcheck = classifyAs('factcheck', json.urlOfFactCheck);
+	var washingtonpost = classifyAs('washingtonpost', json.urlOfFactCheck);
+	var climatefeedback = classifyAs('climatefeedback', json.urlOfFactCheck);
+
+	var factChecker = [snopes, 
+	                   politifact, 
+	                   factcheck, 
+	                   washingtonpost, 
+	                   climatefeedback].filter(item => item)[0];
+
+	var urlOfReviewedClaim;
+
+	if ( factChecker == 'factcheck' || 
+		 factChecker == 'washingtonpost' ||
+		 factChecker == 'politifact' ) {
+	  urlOfReviewedClaim = json.itemReviewed.author.sameAs[0];
+	}
+
+	if ( factChecker == 'snopes') {
+	  urlOfReviewedClaim = json.itemReviewed.sameAs;  	
+	}
+
+	if ( factChecker == 'climatefeedback') {
+	  urlOfReviewedClaim = json.itemReviewed.url;
+	}
+
+
+	var annotationHTML =  `
+<p>
+${factChecker} <a href="${json.urlOfFactCheck}">checked</a> the claim: 
+<blockquote>
+<i>${json.claimReviewed}</i> 
+</blockquote>
+</p>
+<p>
+found at <a href="${json.targetUri[0]}">${json.targetUri[0]}</a>
+</p>
+<p>
+and rated it:
+</p>
+<p>
+<b>${json.reviewRating.alternateName}</b>
+</p>`;
+
+	viewer.innerHTML = annotationHTML;
+	}
+
+	var buttonHTML = `<div id="postButton"><button onclick="postAnno()">post annotation</button></div>`;
+	var button = getById('postButton');
+	button.innerHTML = buttonHTML;
+
+app();
+
+</script>
+
+</body>
+</html>
