@@ -3,52 +3,63 @@ var payload;
 var data = {
   urlOfFactCheck: location.href,
   targetUri: [],
-  reviewRating: {},
+  url: null,
+  claimReviewed: null,
   itemReviewed: {},
+  reviewRating: {},
 }
 
-  function tryMicrodata(data) {
-    try {
-      data.claimReviewed = document.querySelector('*[itemprop="claimReviewed"]').content;
-    } catch (e) {data.claimReviewed = null}
+function tryMicrodata(data) {
 
-    try {
-      data.reviewRating.alternateName = document.querySelector('*[itemprop="alternateName"]').innerText;
-    } catch (e) {}
+  var itemReviewed = document.querySelector("*[itemprop=itemReviewed]");
 
+  if (itemReviewed) {
     try {
-      data.reviewRating.ratingValue = document.querySelector('*[itemprop="ratingValue"]').innerText;
-    } catch (e) {}
-
-    try {
-      data.reviewRating.bestRating = document.querySelector('*[itemprop="bestRating"]').innerText;
-    } catch (e) {}
-
-    try {
-      data.reviewRating.bestRating = document.querySelector('*[itemprop="worstRating"]').innerText;
-    } catch (e) {}
-
-    try {
-      data.itemReviewed.author = document.querySelector('*[itemprop="author"]').content;
-    } catch (e) {}
-
-    try {
-      data.itemReviewed.datePublished = document.querySelector('*[itemprop="datePublished"]').content;
-    } catch (e) {}
-
-    try {
-      data.itemReviewed.name = document.querySelector('*[itemprop="name"]').content;
-    } catch (e) {}
-
-    try {
-      data.itemReviewed.sameAs = document.querySelector('*[itemprop="sameAs"]').content;
-      if ( data.itemReviewed.sameAs ) {
-        data.targetUri.push(data.itemReviewed.sameAs);
+      var url = getValue(itemReviewed.querySelectorAll("*[itemprop=url]"));
+      if (url) {
+        data.url = url;
+        data.targetUri.push(url);
       }
-    } catch (e) {}
 
-    return data;
+      var author = itemReviewed.querySelector("*[itemprop=author]");
+      if (author) {
+        data.itemReviewed.author = {};
+        data.itemReviewed.author.name = getValue(author.querySelector("*[itemprop=name]"));
+        data.itemReviewed.author.jobTitle = getValue(author.querySelector("*[itemprop=jobTitle]"));
+
+        data.itemReviewed.author.sameAs = getValue(author.querySelector("*[itemprop=sameAs]"));
+        if ( data.itemReviewed.author.sameAs ) {
+          data.targetUri.push(data.itemReviewed.author.sameAs);
+        }
+      }
+    }
+    catch (e) {
+        console.log(e);
+    }
   }
+
+  var claimReviewed = document.querySelector("*[itemprop=claimReviewed]");
+
+  if (claimReviewed) {
+    data.claimReviewed = getValue(claimReviewed);
+  }
+
+  var reviewRating = document.querySelector("*[itemprop=reviewRating]");
+
+  if (reviewRating) {
+    try {
+      data.reviewRating.alternateName = getValue(reviewRating.querySelector("*[itemprop=alternateName]"));
+      data.reviewRating.ratingValue = getValue(reviewRating.querySelector("*[itemprop=ratingValue]"));
+      data.reviewRating.bestRating = getValue(reviewRating.querySelector("*[itemprop=bestRating]"));
+      data.reviewRating.worstRating = getValue(reviewRating.querySelector("*[itemprop=worstRating]"));
+    }
+    catch (e) {
+      console.log(e);
+    }
+  }
+
+  return data;
+}
 
 function tryJsonLd(data) {
   var scripts = document.querySelectorAll('script');
@@ -81,9 +92,23 @@ function tryJsonLd(data) {
   return data;
 }
 
-function gather() {
+function getValue(element) {
+  var value = null;
+  try {
+    if ( element.content) {
+      value = element.content;
+    }
+    else if  (element.innerText != '') {
+      value = element.innerText;
+    }
+  }
+  catch (e) {
+    console.log(e);
+  }
+  return value;
+}
 
-  debugger;
+function gather() {
 
   var claimReviewed;
 
