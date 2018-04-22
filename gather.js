@@ -34,7 +34,7 @@ function tryMicrodata(data) {
       }
     }
     catch (e) {
-        console.log(e);
+      console.log(e);
     }
   }
 
@@ -67,15 +67,15 @@ function tryJsonLd(data) {
   scripts.forEach(function(scrpt) {
     if ( scrpt.innerText.indexOf('claimReviewed') != -1 ) {
       json = JSON.parse(scrpt.innerText);
-	  if ( json['@type'] !== 'ClaimReview' ) {
+      if ( json['@type'] !== 'ClaimReview' ) {
         try {
           json = json.mainEntity.review;
-		}
-		catch (e) {
+        }
+        catch (e) {
           console.log('no ClaimReview found');
-		}
-	  }
-	  if ( json['@type'] === 'ClaimReview' ) {
+        }
+      }
+      if ( json['@type'] === 'ClaimReview' ) {
         data.claimReviewed = json.claimReviewed;
         data.reviewRating = json.reviewRating;
         data.itemReviewed = json.itemReviewed;
@@ -85,7 +85,7 @@ function tryJsonLd(data) {
         if (data.itemReviewed.author.sameAs instanceof Array) {
           data.targetUri.push(data.itemReviewed.author.sameAs[0]);
         }
-	  }
+      }
     }
   });
 
@@ -109,8 +109,6 @@ function getValue(element) {
 }
 
 function gather() {
-
-  var claimReviewed;
 
   data = tryJsonLd(data);
 
