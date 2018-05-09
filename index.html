@@ -35,19 +35,16 @@ body { font-family:arial; margin:.5in; }
 var json;
 
 function postAnno() {
-	debugger;
-	var payload = createAnnotationPayload(
-		json.targetUri[0],
-		json.claimReviewed,
-		getUser(),
-		getGroup(),
-		getById('viewer').innerHTML,
-		[],
-		null,
-		true
-		);
-	var token = getToken();
-  postAnnotation(payload, token, 'status');
+  debugger;
+  var params = {};
+  params.uri = json.targetUri[0];
+  params.text = getById('viewer').innerHTML;
+  params.username = getUser();
+  params.group = getGroup();
+  params.tags = ['FactCheck'];
+  var payload = createAnnotationPayload(params);
+  var token = getToken();
+  postAnnotationAndRedirect(payload, token, 'annotations:query:tag:FactCheck');
 }
 
 function app() {
