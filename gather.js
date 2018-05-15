@@ -3,7 +3,7 @@ var payload;
 var data = {
   urlOfFactCheck: location.href,
   targetUri: [],
-  url: null,
+  method: null,
   claimReviewed: null,
   itemReviewed: {},
   reviewRating: {},
@@ -110,15 +110,25 @@ function getValue(element) {
 
 function gather() {
 
-  data = tryJsonLd(data);
+  debugger;
 
-  if (! data.claimReviewed ) {
+  data = tryJsonLd(data);
+  if (data.claimReviewed) {
+    data.method = 'json-ld';
+  } else {
     data = tryMicrodata(data);
+    if (data.claimReviewed) {
+      data.method = 'microdata';
+    }
   }
 
-  payload = JSON.stringify(data);
-
-  location.href = 'https://jonudell.info/h/FactCheck?url=' + encodeURIComponent(payload);
+  if ( data.claimReviewed) {
+    payload = JSON.stringify(data);
+    location.href = 'https://jonudell.info/h/FactCheck?url=' + encodeURIComponent(payload);
+  }
+  else {
+    alert("No ClaimReview data found (tried microdata and json-ld methods)");
+  }
 }
 
 gather();
