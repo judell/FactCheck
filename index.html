@@ -7,7 +7,7 @@ body { font-family:arial; margin:.5in; }
 .formMessage { font-size:smaller }
 </style>
 
-<script src="https://jonudell.info/hlib/hlib.js"></script>
+<script src="https://jonudell.info/hlib/hlib.bundle.js"></script>
 
 </head>
 
@@ -38,13 +38,13 @@ function postAnno() {
   debugger;
   var params = {};
   params.uri = json.targetUri[0];
-  params.text = getById('viewer').innerHTML;
-  params.username = getUser();
-  params.group = getGroup();
+  params.text = hlib.getById('viewer').innerHTML;
+  params.username = hlib.getUser();
+  params.group = hlib.getGroup();
   params.tags = ['FactCheck'];
-  var payload = createAnnotationPayload(params);
-  var token = getToken();
-  postAnnotationAndRedirect(payload, token, 'annotations:query:tag:FactCheck');
+  var payload = hlib.createAnnotationPayload(params);
+  var token = hlib.getToken();
+  hlib.postAnnotationAndRedirect(payload, token, 'annotations:query:tag:FactCheck');
 }
 
 function app() {
@@ -58,7 +58,7 @@ function app() {
 	  }
 	}
 
-	var payload = decodeURIComponent(gup('url'));
+	var payload = decodeURIComponent(hlib.gup('url'));
 
 	try {
 	  json = JSON.parse(payload);
@@ -68,22 +68,21 @@ function app() {
 
   if (! json.claimReviewed) {
   	viewer.innerHTML = `<p>No ClaimReview data found at ${data.urlOfFactCheck}`;
-  	getById('postButton').style.display = 'none';
+  	hlib.getById('postButton').style.display = 'none';
   	return;
   }
 
+	hlib.getById('claimReviewJson').innerHTML = payload;
+	hlib.getById('claimReviewMethod').innerHTML = json.method;
 
-	getById('claimReviewJson').innerHTML = payload;
-	getById('claimReviewMethod').innerHTML = json.method;
+	var tokenContainer = hlib.getById('tokenContainer');
+	hlib.createApiTokenInputForm(tokenContainer);
 
-	var tokenContainer = getById('tokenContainer');
-	createApiTokenInputForm(tokenContainer);
+	var groupContainer = hlib.getById('groupContainer');
+	hlib.createGroupInputForm(groupContainer);
 
-	var groupContainer = getById('groupContainer');
-	createGroupInputForm(groupContainer);
-
-	var userContainer = getById('userContainer');
-	createUserInputForm(userContainer);
+	var userContainer = hlib.getById('userContainer');
+	hlib.createUserInputForm(userContainer);
 
 	var factChecker;
 
@@ -115,8 +114,7 @@ function app() {
 	  urlOfReviewedClaim = json.itemReviewed.url;
 	}
 
-
-	var annotationHTML =  `
+	var annotationHTML = `
 <p>
 ${factChecker} <a href="${json.urlOfFactCheck}">checked</a> the claim: 
 <blockquote>
@@ -137,7 +135,7 @@ and rated it:
 	}
 
 	var buttonHTML = `<div id="postButton"><button onclick="postAnno()">post annotation</button></div>`;
-	var button = getById('postButton');
+	var button = hlib.getById('postButton');
 	button.innerHTML = buttonHTML;
 
 app();
